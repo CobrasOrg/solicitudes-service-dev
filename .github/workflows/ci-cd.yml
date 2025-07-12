@@ -34,10 +34,10 @@ jobs:
           CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
           BASE_URL: ${{ secrets.STAGING_BASE_URL }}
 
-  # Tests completos (solo en PRs a main)
+  # Tests completos (solo en push a main, NO en PRs)
   full-tests:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
