@@ -1,34 +1,17 @@
-# FastAPI Service Template
+# Solicitudes Service - Repositorio de Desarrollo
 
-Plantilla base para servicios backend con FastAPI y MongoDB.
+Este es el repositorio de desarrollo para el servicio de solicitudes. Aquí puedes trabajar con todas las herramientas de testing y desarrollo, mientras mantienes sincronizado con el repositorio de producción.
 
-## Características
+## 🚀 Configuración Inicial
 
-- FastAPI como framework web
-- MongoDB como base de datos
-- Estructura modular y escalable
-- Configuración de CORS
-- Variables de entorno con python-dotenv
-- Husky para validación de mensajes de commit
-- Pre-commit hooks para linting y formateo
-
-## Requisitos
-
-- Python 3.8+
-- MongoDB
-- Node.js y npm (para Husky)
-- pip
-
-## Instalación
-
-1. Clonar el repositorio:
+### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/fastapi-service-template.git
-cd fastapi-service-template
+git clone https://github.com/CobrasOrg/solicitudes-service-dev.git
+cd solicitudes-service-dev
 ```
 
-2. Crear y activar entorno virtual:
+### 2. Crear y activar entorno virtual
 
 ```bash
 python -m venv venv
@@ -36,96 +19,205 @@ python -m venv venv
 source venv/bin/activate  # Linux/Mac
 ```
 
-3. Instalar dependencias de Python:
+### 3. Instalar dependencias
 
 ```bash
+# Todas las dependencias (incluyendo testing)
 pip install -r requirements.txt
 ```
 
-4. Instalar dependencias de Node.js:
+### 4. Configurar variables de entorno
 
 ```bash
-npm install
+cp env.example .env
+# Editar .env con tus configuraciones de MongoDB y Firebase
 ```
 
-5. Configurar variables de entorno:
+### 5. Ejecutar el servidor
 
 ```bash
-cp .env.example .env
-# Editar .env con tus configuraciones
-```
-
-## Ejecución
-
-```bash
-uvicorn main:app --reload
+python main.py
 ```
 
 La aplicación estará disponible en:
+- **API**: http://localhost:8000
+- **Documentación Swagger**: http://localhost:8000/docs
+- **Health check**: http://localhost:8000/health
 
-- http://localhost:8000 - Mensaje de bienvenida
-- http://localhost:8000/api/v1/base/health - Health check
-- http://localhost:8000/docs - Documentación Swagger UI
-- http://localhost:8000/redoc - Documentación ReDoc
+### Usar la API desde Swagger
 
-## Estructura del Proyecto
+1. Abre http://localhost:8000/docs en tu navegador
+2. Explora los endpoints disponibles
+3. Haz clic en "Try it out" para probar los endpoints
+4. Completa los parámetros requeridos
+5. Ejecuta la petición
 
-```
-fastapi-service-template/
-├── app/
-│   ├── api/
-│   │   └── v1/
-│   │       ├── endpoints/
-│   │       │   └── base.py
-│   │       └── api.py
-│   ├── core/
-│   │   └── config.py
-│   ├── db/
-│   │   └── database.py
-│   ├── models/
-│   │   └── base.py
-│   └── schemas/
-│       └── base.py
-├── .env.example
-├── .gitignore
-├── .pre-commit-config.yaml
-├── commitlint.config.js
-├── main.py
-├── package.json
-├── README.md
-└── requirements.txt
+### 2. Configurar remotes
+
+```bash
+# Verificar remotes actuales
+git remote -v
+
+# Si necesitas agregar el remote de producción
+git remote add production https://github.com/CobrasOrg/solicitudes-service.git
 ```
 
-## Desarrollo
+## 🧪 Testing
 
-### Agregar Nuevos Endpoints
-
-1. Crear nuevo archivo en `app/api/v1/endpoints/`
-2. Definir router y endpoints
-3. Registrar router en `app/api/v1/api.py`
-
-### Convención de Mensajes de Commit
-
-Los mensajes de commit deben seguir el formato:
-
-```
-tipo(alcance): descripción
-
-[cuerpo opcional]
-
-[pie opcional]
+### Tests Rápidos
+```bash
+python test_quick.py
 ```
 
-Tipos permitidos:
+### Tests Completos
+```bash
+python run_tests.py
+```
 
-- feat: Nueva característica
-- fix: Corrección de bug
-- docs: Cambios en documentación
-- style: Cambios de formato
-- refactor: Refactorización de código
-- test: Agregar o modificar tests
-- chore: Cambios en tareas de mantenimiento
+### Tests con pytest
+```bash
+# Todos los tests
+pytest
 
-## Licencia
+# Tests específicos
+pytest tests/test_solicitudes.py::test_get_all_solicitudes -v
 
-MIT
+# Tests con coverage
+pytest --cov=app tests/
+```
+
+## 🔄 Sincronización con Producción
+
+### Sincronización Automática (Windows)
+```bash
+sync-to-production.bat
+```
+
+### Sincronización Manual
+```bash
+# 1. Ejecutar tests
+pytest -q
+
+# 2. Hacer commit de cambios
+git add .
+git commit -m "feat: nueva funcionalidad"
+
+# 3. Push a desarrollo
+git push origin main
+
+# 4. Sincronizar con producción
+git push production main
+```
+
+## 📁 Estructura del Proyecto
+
+```
+solicitudes-service-dev/
+├── app/                    # Código principal de la aplicación
+├── tests/                  # Tests de la aplicación
+├── development-files/      # Archivos de desarrollo (no se sincronizan)
+├── requirements.txt        # Dependencias principales
+├── requirements-test.txt   # Dependencias de testing
+├── pytest.ini            # Configuración de pytest
+├── test_quick.py         # Tests rápidos
+├── run_tests.py          # Tests completos
+├── sync-to-production.bat # Script de sincronización (Windows)
+└── README-DEVELOPMENT.md # Este archivo
+```
+
+## 🔧 Flujo de Trabajo
+
+### 1. Desarrollo
+- Trabaja en el código en la carpeta `app/`
+- Escribe tests en la carpeta `tests/`
+- Usa `test_quick.py` para verificaciones rápidas
+
+### 2. Testing
+- Ejecuta tests antes de cada commit
+- Usa `pytest` para tests completos
+- Verifica que todos los tests pasen
+
+### 3. Sincronización
+- Usa `sync-to-production.bat` para sincronizar automáticamente
+- O haz push manual a ambos repositorios
+
+### 4. Despliegue
+- El repositorio de producción se mantiene limpio
+- Solo contiene código de producción
+- Se despliega automáticamente desde producción
+
+## 🛠️ Herramientas Disponibles
+
+### Scripts de Testing
+- `test_quick.py`: Tests básicos de conexión y funcionalidad
+- `run_tests.py`: Tests completos de la API
+- `pytest`: Framework de testing completo
+
+### Scripts de Sincronización
+- `sync-to-production.bat`: Sincronización automática (Windows)
+- `sync-to-production.sh`: Sincronización automática (Linux/Mac)
+
+### Configuración
+- `pytest.ini`: Configuración de pytest
+- `requirements-test.txt`: Dependencias de testing
+
+## 🚨 Troubleshooting
+
+### Error: "No se encontró remote 'production'"
+```bash
+git remote add production https://github.com/CobrasOrg/solicitudes-service.git
+```
+
+### Error: "Los tests fallaron"
+- Revisa que MongoDB esté corriendo
+- Verifica las variables de entorno
+- Ejecuta `python test_quick.py` para diagnóstico
+
+### Error: "Error al sincronizar con producción"
+- Verifica permisos de escritura en el repositorio de producción
+- Asegúrate de estar autenticado con GitHub
+- Revisa que el repositorio de producción exista
+
+## 📊 Monitoreo
+
+### Logs de Testing
+```bash
+# Tests con verbose
+pytest -v
+
+# Tests con output detallado
+pytest -s
+
+# Tests con coverage
+pytest --cov=app --cov-report=html
+```
+
+### Estado de Sincronización
+```bash
+# Verificar remotes
+git remote -v
+
+# Verificar estado de commits
+git log --oneline -10
+```
+
+## 🎯 Próximos Pasos
+
+1. ✅ Configurar repositorio de desarrollo
+2. ✅ Instalar dependencias de testing
+3. ✅ Configurar remote de producción
+4. 🔄 Ejecutar tests iniciales
+5. 🔄 Comenzar desarrollo con testing completo
+6. 🔄 Configurar CI/CD si es necesario
+
+## 📞 Soporte
+
+Si tienes problemas:
+1. Revisa los logs de error
+2. Ejecuta `python test_quick.py` para diagnóstico
+3. Verifica la configuración de MongoDB
+4. Revisa las variables de entorno
+
+---
+
+**Nota**: Este repositorio contiene archivos de desarrollo que NO se sincronizan con producción. El repositorio de producción se mantiene limpio y optimizado para despliegue. 
