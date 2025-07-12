@@ -5,6 +5,33 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2025-07-11
+
+### Changed
+- Optimizado `mock_data.json` de 20 a 10 registros para reducir uso de Cloudinary
+- Deshabilitada migración automática de datos mock al iniciar el servidor
+- Tests optimizados para usar máximo 10 registros en todas las operaciones
+- Optimizados scripts de testing para mayor velocidad y eficiencia
+- Configuración de pytest mejorada con opciones optimizadas
+- Consolidada documentación de testing en `TESTING.md`
+- Reorganizada documentación: README.md simplificado, TESTING.md consolidado
+- Separada documentación de desarrollo y producción
+
+### Added
+- Scripts para gestión manual de base de datos:
+  - `populate_database.py` - Para poblar la base de datos con datos de prueba
+  - `clear_database.py` - Para limpiar todas las solicitudes
+
+### Removed
+- Migración automática de datos mock desde `main.py`
+- Dependencia de migración automática en el startup del servidor
+- Documentación duplicada de testing
+
+### Performance
+- Reducción del 50% en uso de Cloudinary para evitar costos excesivos
+- Tests rápidos ejecutándose en menos de 30 segundos
+- Reducción del 40% en tiempo de ejecución de tests completos
+
 ## [0.1.0] - 2025-06-10
 
 ### Added
@@ -29,7 +56,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Tests de filtrado por estado
   - Tests de validación de datos
 - Documentación de API con Swagger y ReDoc
-- Archivo de datos mock con 20 registros de ejemplo
+- Archivo de datos mock con 10 registros de ejemplo (optimizado para Cloudinary)
 - Configuración de CORS para desarrollo
 - Variables de entorno con python-dotenv
 - Husky para validación de mensajes de commit

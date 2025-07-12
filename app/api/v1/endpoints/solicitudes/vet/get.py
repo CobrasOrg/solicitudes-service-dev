@@ -127,23 +127,23 @@ async def get_solicitudes_by_status(
     ),
     especie: Optional[str] = Query(
         None,
-        description="Filtrar por especie (ej: Perro, Gato)",
-        examples=["Perro"]
+        description="Filtrar por especie (ej: Perro, Gato). Múltiples valores separados por coma: Perro,Gato",
+        examples={"value": "Perro", "multiple": "Perro,Gato"}
     ),
     tipo_sangre: Optional[str] = Query(
         None,
-        description="Filtrar por tipo de sangre (ej: DEA 1.1+, A)",
-        examples=["DEA 1.1+"]
+        description="Filtrar por tipo de sangre (ej: DEA 1.1+, A). Múltiples valores separados por coma: DEA 1.1+,A",
+        examples={"value": "DEA 1.1+", "multiple": "DEA 1.1+,A"}
     ),
     urgencia: Optional[str] = Query(
         None,
-        description="Filtrar por nivel de urgencia (Alta, Media, Baja)",
-        examples=["Alta"]
+        description="Filtrar por nivel de urgencia (Alta, Media). Múltiples valores separados por coma: Alta,Media",
+        examples={"value": "Alta", "multiple": "Alta,Media"}
     ),
     localidad: Optional[str] = Query(
         None,
-        description="Filtrar por localidad (ej: Suba, Chapinero)",
-        examples=["Suba"]
+        description="Filtrar por localidad (ej: Suba, Chapinero). Múltiples valores separados por coma: Suba,Teusaquillo",
+        examples={"value": "Suba", "multiple": "Suba,Teusaquillo"}
     )
 ):
     """
@@ -151,17 +151,22 @@ async def get_solicitudes_by_status(
     Endpoint exclusivo para veterinarias.
     
     Args:
-        estado (Optional[str]): Estado de las solicitudes a filtrar
-        especie (Optional[str]): Especie a filtrar
-        tipo_sangre (Optional[str]): Tipo de sangre a filtrar
-        urgencia (Optional[str]): Nivel de urgencia a filtrar
-        localidad (Optional[str]): Localidad a filtrar
+        estado (Optional[str]): Estado de las solicitudes a filtrar (un solo valor)
+        especie (Optional[str]): Especie a filtrar. Múltiples valores separados por coma: "Perro,Gato"
+        tipo_sangre (Optional[str]): Tipo de sangre a filtrar. Múltiples valores separados por coma: "DEA 1.1+,A"
+        urgencia (Optional[str]): Nivel de urgencia a filtrar. Múltiples valores separados por coma: "Alta,Media"
+        localidad (Optional[str]): Localidad a filtrar. Múltiples valores separados por coma: "Suba,Teusaquillo"
     
     Returns:
         List[Solicitud]: Lista de solicitudes que coinciden con los filtros
         
     Raises:
         HTTPException: Si ocurre un error al procesar la solicitud o si el estado es inválido
+        
+    Examples:
+        - Filtrar por estado y especie: ?estado=Activa&especie=Perro
+        - Filtrar por múltiples localidades: ?estado=Activa&localidad=Suba,Teusaquillo
+        - Filtrar por múltiples criterios: ?estado=Activa&especie=Perro,Gato&localidad=Suba,Chapinero&urgencia=Alta,Media
     """
     try:
         if estado and estado.strip():  # Verificar que el estado no esté vacío después de quitar espacios

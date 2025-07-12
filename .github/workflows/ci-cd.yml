@@ -1,0 +1,152 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # Tests de despliegue (siempre se ejecutan)
+  deployment-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+          
+      - name: Run deployment tests
+        run: python scripts/deployment/test_deployment.py
+        env:
+          MONGODB_URL: ${{ secrets.MONGODB_URL }}
+          MONGODB_DATABASE: ${{ secrets.MONGODB_DATABASE }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+
+  # Tests completos (solo en PRs a main)
+  full-tests:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+          
+      - name: Run all tests
+        run: python -m pytest tests/ -v
+        env:
+          MONGODB_URL: ${{ secrets.MONGODB_URL }}
+          MONGODB_DATABASE: ${{ secrets.MONGODB_DATABASE }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_SECRET }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+
+  # Deploy a producción (solo cuando se hace push a main)
+  deploy-to-production:
+    runs-on: ubuntu-latest
+    needs: [deployment-tests]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: Deploy to production repository
+        run: |
+          # Configurar git para el repo de producción
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          # Crear directorio temporal para producción
+          TEMP_DIR=$(mktemp -d)
+          echo "Directorio temporal: $TEMP_DIR"
+          
+          # Crear archivo de exclusión
+          cat > sync-exclude.txt << EOF
+          tests/
+          pytest.ini
+          requirements-test.txt
+          test_quick.py
+          run_tests.py
+          .pytest_cache/
+          node_modules/
+          package.json
+          package-lock.json
+          commitlint.config.js
+          .pre-commit-config.yaml
+          .git/
+          venv/
+          __pycache__/
+          .env
+          development-files/
+          TESTING.md
+          sync-to-production.bat
+          sync-to-production.sh
+          scripts/
+          sync-exclude.txt
+          .github/
+          EOF
+          
+          # Copiar archivos de producción (excluyendo tests)
+          rsync -av --exclude-from=sync-exclude.txt . "$TEMP_DIR/"
+          
+          # Cambiar al directorio temporal
+          cd "$TEMP_DIR"
+          
+          # Inicializar git si no existe
+          if [ ! -d ".git" ]; then
+            git init
+            git remote add origin https://github.com/CobrasOrg/solicitudes-service.git
+          fi
+          
+          # Hacer commit de los cambios
+          git add .
+          git commit -m "Sync from development: $(date)"
+          
+          # Push a producción (intentar main primero, luego master)
+          if git push origin main; then
+            echo "✅ Sincronización exitosa a branch 'main'!"
+          elif git push origin master; then
+            echo "✅ Sincronización exitosa a branch 'master'!"
+          else
+            echo "❌ Error al sincronizar con producción"
+            exit 1
+          fi
+          
+          # Limpiar
+          cd ..
+          rm -rf "$TEMP_DIR"
+          rm sync-exclude.txt
+          
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

@@ -1,6 +1,6 @@
 from typing import List, Optional
 from pydantic_settings import BaseSettings
-from pydantic import field_validator
+from pydantic import field_validator, ConfigDict
 
 class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
@@ -11,6 +11,11 @@ class Settings(BaseSettings):
     # MongoDB
     MONGODB_URL: str = "mongodb://localhost:27017"
     MONGODB_DATABASE: str = "solicitudes"
+    
+    # Cloudinary
+    CLOUDINARY_CLOUD_NAME: str
+    CLOUDINARY_API_KEY: str
+    CLOUDINARY_API_SECRET: str
     
     # Firebase Configuration
     FIREBASE_TYPE: str = "service_account"
@@ -41,8 +46,6 @@ class Settings(BaseSettings):
             return v
         raise ValueError(v)
 
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
+    model_config = ConfigDict(case_sensitive=True, env_file=".env")
 
 settings = Settings() 

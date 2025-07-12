@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, B
 from app.schemas.solicitud import Solicitud, SolicitudCreate, SolicitudCreateWithImage, SolicitudCreateInput
 from app.models.solicitud_mongo import SolicitudMongoModel
 from app.services.firebase_service import firebase_service
+from app.services.cloudinary_service import upload_image
 from datetime import datetime
 import secrets
 import json
@@ -120,11 +121,17 @@ async def create_solicitud(
         # Subir imagen si se proporcionó
         foto_url = None
         if foto_mascota:
-            foto_url = await firebase_service.upload_image(foto_mascota)
-        
-        # Generar un ID en formato hexadecimal de 24 caracteres
-        solicitud_id = secrets.token_hex(12)  # 12 bytes = 24 caracteres hexadecimales
-        
+            # Generar un ID en formato hexadecimal de 24 caracteres
+            solicitud_id = secrets.token_hex(12)  # 12 bytes = 24 caracteres hexadecimales
+            try:
+                foto_url = upload_image(foto_mascota.file, public_id=solicitud_id)
+            except Exception as e:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Error al subir la imagen: {str(e)}"
+                )
+        else:
+            solicitud_id = secrets.token_hex(12)
         # Crear la solicitud con el ID y fecha específicos
         nueva_solicitud = {
             "id": solicitud_id,
@@ -133,7 +140,6 @@ async def create_solicitud(
             "foto_mascota": foto_url,
             **solicitud_validada.model_dump()
         }
-        
         return await SolicitudMongoModel.create_solicitud(nueva_solicitud)
     except Exception as e:
         raise HTTPException(

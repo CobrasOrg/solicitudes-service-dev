@@ -74,10 +74,10 @@ class SolicitudMongoModel:
         """
         Filter active solicitations by multiple parameters from MongoDB
         Args:
-            especie (Optional[str]): Especie to filter by
-            tipo_sangre (Optional[str]): Tipo de sangre to filter by
-            urgencia (Optional[str]): Urgencia to filter by
-            localidad (Optional[str]): Localidad to filter by
+            especie (Optional[str]): Especie to filter by (can be comma-separated values)
+            tipo_sangre (Optional[str]): Tipo de sangre to filter by (can be comma-separated values)
+            urgencia (Optional[str]): Urgencia to filter by (can be comma-separated values)
+            localidad (Optional[str]): Localidad to filter by (can be comma-separated values)
         Returns:
             List[Solicitud]: List of active solicitations matching all provided filters
         """
@@ -86,14 +86,42 @@ class SolicitudMongoModel:
         # Construir filtro
         filter_query = {"estado": "Activa"}
         
+        def build_regex_filter(value: str) -> dict:
+            """Build regex filter for multiple values separated by commas"""
+            if not value:
+                return None
+            
+            # Split by comma and clean whitespace
+            values = [v.strip() for v in value.split(',') if v.strip()]
+            if not values:
+                return None
+            
+            if len(values) == 1:
+                # Single value - use exact match with case insensitive
+                return {"$regex": f"^{values[0]}$", "$options": "i"}
+            else:
+                # Multiple values - use OR condition
+                return {"$in": values}
+        
         if especie:
-            filter_query["especie"] = {"$regex": especie, "$options": "i"}
+            especie_filter = build_regex_filter(especie)
+            if especie_filter:
+                filter_query["especie"] = especie_filter
+                
         if tipo_sangre:
-            filter_query["tipo_sangre"] = {"$regex": tipo_sangre, "$options": "i"}
+            tipo_sangre_filter = build_regex_filter(tipo_sangre)
+            if tipo_sangre_filter:
+                filter_query["tipo_sangre"] = tipo_sangre_filter
+                
         if urgencia:
-            filter_query["urgencia"] = {"$regex": urgencia, "$options": "i"}
+            urgencia_filter = build_regex_filter(urgencia)
+            if urgencia_filter:
+                filter_query["urgencia"] = urgencia_filter
+                
         if localidad:
-            filter_query["localidad"] = {"$regex": localidad, "$options": "i"}
+            localidad_filter = build_regex_filter(localidad)
+            if localidad_filter:
+                filter_query["localidad"] = localidad_filter
         
         cursor = collection.find(filter_query)
         solicitudes = await cursor.to_list(length=None)
@@ -168,24 +196,26 @@ class SolicitudMongoModel:
             Optional[Solicitud]: Updated solicitation if found, None otherwise
         """
         collection = SolicitudMongoModel.get_collection()
-        
         try:
             object_id = ObjectId(solicitud_id)
+            print(f"[DEBUG] update_solicitud_estado: Buscando _id={object_id} para actualizar a estado={estado}")
             result = await collection.update_one(
                 {"_id": object_id},
                 {"$set": {"estado": estado}}
             )
-            
+            print(f"[DEBUG] update_solicitud_estado: matched_count={result.matched_count}, modified_count={result.modified_count}")
             if result.modified_count > 0:
                 # Obtener el documento actualizado
                 updated_doc = await collection.find_one({"_id": object_id})
                 if updated_doc:
-                    # Convertir ObjectId a string para el esquema
+                    print(f"[DEBUG] update_solicitud_estado: Documento actualizado encontrado")
                     converted_doc = SolicitudMongoModel._convert_mongo_doc_to_schema(updated_doc)
                     return Solicitud(**converted_doc)
-            
+            else:
+                print(f"[DEBUG] update_solicitud_estado: No se modificó ningún documento")
             return None
-        except Exception:
+        except Exception as e:
+            print(f"[DEBUG] update_solicitud_estado: Exception: {e}")
             return None
 
     @staticmethod
@@ -204,21 +234,29 @@ class SolicitudMongoModel:
             object_id = ObjectId(solicitud_id)
             update_data = solicitud_update.model_dump(exclude_unset=True)
             
+            print(f"[DEBUG] update_solicitud_datos: ID={solicitud_id}, update_data={update_data}")
+            
             result = await collection.update_one(
                 {"_id": object_id},
                 {"$set": update_data}
             )
             
+            print(f"[DEBUG] update_solicitud_datos: matched_count={result.matched_count}, modified_count={result.modified_count}")
+            
             if result.modified_count > 0:
                 # Obtener el documento actualizado
                 updated_doc = await collection.find_one({"_id": object_id})
                 if updated_doc:
+                    print(f"[DEBUG] update_solicitud_datos: Documento actualizado encontrado")
                     # Convertir ObjectId a string para el esquema
                     converted_doc = SolicitudMongoModel._convert_mongo_doc_to_schema(updated_doc)
                     return Solicitud(**converted_doc)
+            else:
+                print(f"[DEBUG] update_solicitud_datos: No se modificó ningún documento")
             
             return None
-        except Exception:
+        except Exception as e:
+            print(f"[DEBUG] update_solicitud_datos: Exception - {e}")
             return None
 
     @staticmethod
@@ -233,10 +271,10 @@ class SolicitudMongoModel:
         Filter solicitations by multiple parameters from MongoDB
         Args:
             estado (Optional[str]): Status to filter by
-            especie (Optional[str]): Especie to filter by
-            tipo_sangre (Optional[str]): Tipo de sangre to filter by
-            urgencia (Optional[str]): Urgencia to filter by
-            localidad (Optional[str]): Localidad to filter by
+            especie (Optional[str]): Especie to filter by (can be comma-separated values)
+            tipo_sangre (Optional[str]): Tipo de sangre to filter by (can be comma-separated values)
+            urgencia (Optional[str]): Urgencia to filter by (can be comma-separated values)
+            localidad (Optional[str]): Localidad to filter by (can be comma-separated values)
         Returns:
             List[Solicitud]: List of solicitations matching all provided filters
         """
@@ -245,16 +283,47 @@ class SolicitudMongoModel:
         # Construir filtro
         filter_query = {}
         
+        def build_regex_filter(value: str) -> dict:
+            """Build regex filter for multiple values separated by commas"""
+            if not value:
+                return None
+            
+            # Split by comma and clean whitespace
+            values = [v.strip() for v in value.split(',') if v.strip()]
+            if not values:
+                return None
+            
+            if len(values) == 1:
+                # Single value - use exact match with case insensitive
+                return {"$regex": f"^{values[0]}$", "$options": "i"}
+            else:
+                # Multiple values - use OR condition
+                return {"$in": values}
+        
         if estado:
-            filter_query["estado"] = {"$regex": estado, "$options": "i"}
+            estado_filter = build_regex_filter(estado)
+            if estado_filter:
+                filter_query["estado"] = estado_filter
+                
         if especie:
-            filter_query["especie"] = {"$regex": especie, "$options": "i"}
+            especie_filter = build_regex_filter(especie)
+            if especie_filter:
+                filter_query["especie"] = especie_filter
+                
         if tipo_sangre:
-            filter_query["tipo_sangre"] = {"$regex": tipo_sangre, "$options": "i"}
+            tipo_sangre_filter = build_regex_filter(tipo_sangre)
+            if tipo_sangre_filter:
+                filter_query["tipo_sangre"] = tipo_sangre_filter
+                
         if urgencia:
-            filter_query["urgencia"] = {"$regex": urgencia, "$options": "i"}
+            urgencia_filter = build_regex_filter(urgencia)
+            if urgencia_filter:
+                filter_query["urgencia"] = urgencia_filter
+                
         if localidad:
-            filter_query["localidad"] = {"$regex": localidad, "$options": "i"}
+            localidad_filter = build_regex_filter(localidad)
+            if localidad_filter:
+                filter_query["localidad"] = localidad_filter
         
         cursor = collection.find(filter_query)
         solicitudes = await cursor.to_list(length=None)

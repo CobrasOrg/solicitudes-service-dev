@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from app.models.solicitud_mongo import SolicitudMongoModel
 from app.services.firebase_service import firebase_service
+from app.services.cloudinary_service import upload_image
+import cloudinary.uploader
 
 router = APIRouter()
 
@@ -54,12 +56,14 @@ async def delete_solicitud(solicitud_id: str):
                 detail="Solicitud no encontrada"
             )
         
-        # Eliminar imagen de Firebase Storage si existe
+        # Eliminar imagen de Cloudinary si existe
         if solicitud.foto_mascota:
             try:
-                await firebase_service.delete_image(solicitud.foto_mascota)
+                url = solicitud.foto_mascota
+                public_id = url.split("/petmatch-solicitudes/")[-1].split(".")[0]
+                cloudinary.uploader.destroy(f"petmatch-solicitudes/{public_id}")
             except Exception as e:
-                print(f"Error eliminando imagen de Firebase: {str(e)}")
+                print(f"Error eliminando imagen de Cloudinary: {str(e)}")
                 # No fallar la eliminación de la solicitud si falla la eliminación de la imagen
         
         # Eliminar la solicitud

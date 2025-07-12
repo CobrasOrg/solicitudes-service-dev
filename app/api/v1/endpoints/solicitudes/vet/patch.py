@@ -5,6 +5,8 @@ from app.services.firebase_service import firebase_service
 from app.constants.solicitudes import ESTADOS_PERMITIDOS
 from typing import Optional, Union
 import json
+from app.services.cloudinary_service import upload_image
+import cloudinary.uploader
 
 router = APIRouter()
 
@@ -76,43 +78,11 @@ async def update_solicitud(
     estado: Optional[str] = Form(None, description="Nuevo estado de la solicitud"),
     foto_mascota: Optional[UploadFile] = File(None, description="Nueva imagen de la mascota (opcional)")
 ):
-    """
-    Actualiza los datos de una solicitud existente.
-    Acepta tanto JSON como datos de formulario.
-    Solo se actualizan los campos enviados.
-    Los campos vacíos o nulos son ignorados.
-    Endpoint exclusivo para veterinarias.
-    
-    Args:
-        solicitud_id (str): ID de la solicitud a actualizar
-        especie (Optional[str]): Nueva especie de la mascota
-        tipo_sangre (Optional[str]): Nuevo tipo de sangre requerido
-        urgencia (Optional[str]): Nuevo nivel de urgencia
-        peso_minimo (Optional[Union[float, str]]): Nuevo peso mínimo requerido
-        descripcion_solicitud (Optional[str]): Nueva descripción de la solicitud
-        direccion (Optional[str]): Nueva dirección
-        estado (Optional[str]): Nuevo estado de la solicitud
-        foto_mascota (Optional[UploadFile]): Nueva imagen de la mascota (opcional)
-    
-    Returns:
-        Solicitud: Solicitud actualizada
-        
-    Raises:
-        HTTPException: Si ocurre un error al procesar la solicitud
-    """
     try:
-        # Obtener la solicitud actual para manejar la imagen anterior
         solicitud_actual = await SolicitudMongoModel.get_solicitud_by_id(solicitud_id)
         if not solicitud_actual:
-            raise HTTPException(
-                status_code=404,
-                detail="Solicitud no encontrada"
-            )
-        
-        # Preparar datos de actualización
+            raise HTTPException(status_code=404, detail="Solicitud no encontrada")
         update_data = {}
-        
-        # Manejar campos de formulario
         if especie is not None and especie != "":
             update_data["especie"] = especie
         if tipo_sangre is not None and tipo_sangre != "":
@@ -120,15 +90,11 @@ async def update_solicitud(
         if urgencia is not None and urgencia != "":
             update_data["urgencia"] = urgencia
         if peso_minimo is not None and peso_minimo != "":
-            # Convertir string a float si es necesario
             if isinstance(peso_minimo, str):
                 try:
                     peso_minimo = float(peso_minimo)
                 except ValueError:
-                    raise HTTPException(
-                        status_code=400,
-                        detail="peso_minimo debe ser un número válido"
-                    )
+                    raise HTTPException(status_code=400, detail="peso_minimo debe ser un número válido")
             update_data["peso_minimo"] = peso_minimo
         if descripcion_solicitud is not None and descripcion_solicitud != "":
             update_data["descripcion_solicitud"] = descripcion_solicitud
@@ -136,47 +102,30 @@ async def update_solicitud(
             update_data["direccion"] = direccion
         if estado is not None and estado != "":
             update_data["estado"] = estado
-        
-        # Manejar nueva imagen si se proporcionó
         if foto_mascota:
-            # Eliminar imagen anterior si existe
             if solicitud_actual.foto_mascota:
-                await firebase_service.delete_image(solicitud_actual.foto_mascota)
-            
-            # Subir nueva imagen
-            nueva_foto_url = await firebase_service.upload_image(foto_mascota)
+                try:
+                    url = solicitud_actual.foto_mascota
+                    public_id = url.split("/petmatch-solicitudes/")[-1].split(".")[0]
+                    cloudinary.uploader.destroy(f"petmatch-solicitudes/{public_id}")
+                except Exception as e:
+                    print(f"Error eliminando imagen de Cloudinary: {str(e)}")
+            nueva_foto_url = upload_image(foto_mascota.file, public_id=solicitud_id)
             if nueva_foto_url:
                 update_data["foto_mascota"] = nueva_foto_url
-        
-        # Si no hay datos para actualizar, retornar la solicitud actual
         if not update_data:
             return solicitud_actual
-        
-        # Crear objeto de actualización
         solicitud_update = SolicitudUpdate(**update_data)
-        
-        # Actualizar la solicitud
         solicitud_actualizada = await SolicitudMongoModel.update_solicitud_datos(solicitud_id, solicitud_update)
         if not solicitud_actualizada:
-            raise HTTPException(
-                status_code=404,
-                detail="Solicitud no encontrada"
-            )
-        
+            raise HTTPException(status_code=404, detail="Solicitud no encontrada")
         return solicitud_actualizada
-        
     except ValueError as e:
-        raise HTTPException(
-            status_code=400,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=400, detail=str(e))
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail="Error interno del servidor al procesar la solicitud"
-        )
+        raise HTTPException(status_code=500, detail="Error interno del servidor al procesar la solicitud")
 
 
 
@@ -252,6 +201,8 @@ async def update_solicitud_estado(solicitud_id: str, estado_update: SolicitudEst
         HTTPException: Si ocurre un error al procesar la solicitud, si el estado es inválido o si la solicitud no existe
     """
     try:
+        print(f"[DEBUG] update_solicitud_estado endpoint: ID={solicitud_id}, estado={estado_update.estado}")
+        
         # Validar que el estado sea válido
         if estado_update.estado not in ESTADOS_PERMITIDOS:
             raise HTTPException(
@@ -259,14 +210,35 @@ async def update_solicitud_estado(solicitud_id: str, estado_update: SolicitudEst
                 detail=f"Estado inválido. Los estados válidos son: {', '.join(ESTADOS_PERMITIDOS)}"
             )
         
-        solicitud_actualizada = await SolicitudMongoModel.update_solicitud_estado(solicitud_id, estado_update.estado)
-        if not solicitud_actualizada:
+        # Verificar que la solicitud existe antes de actualizar
+        solicitud_existente = await SolicitudMongoModel.get_solicitud_by_id(solicitud_id)
+        if not solicitud_existente:
+            print(f"[DEBUG] update_solicitud_estado endpoint: Solicitud no encontrada")
             raise HTTPException(
                 status_code=404,
                 detail="Solicitud no encontrada"
             )
+        
+        print(f"[DEBUG] update_solicitud_estado endpoint: Solicitud encontrada, estado actual={solicitud_existente.estado}")
+        
+        # Solo actualizar si el estado es diferente
+        if solicitud_existente.estado == estado_update.estado:
+            print(f"[DEBUG] update_solicitud_estado endpoint: Estado ya es {estado_update.estado}, retornando solicitud actual")
+            return solicitud_existente
+        
+        solicitud_actualizada = await SolicitudMongoModel.update_solicitud_estado(solicitud_id, estado_update.estado)
+        if not solicitud_actualizada:
+            print(f"[DEBUG] update_solicitud_estado endpoint: Error en actualización")
+            raise HTTPException(
+                status_code=404,
+                detail="Solicitud no encontrada"
+            )
+        
+        print(f"[DEBUG] update_solicitud_estado endpoint: Actualización exitosa")
         return solicitud_actualizada
+        
     except ValueError as e:
+        print(f"[DEBUG] update_solicitud_estado endpoint: ValueError - {e}")
         raise HTTPException(
             status_code=400,
             detail=str(e)
@@ -274,6 +246,7 @@ async def update_solicitud_estado(solicitud_id: str, estado_update: SolicitudEst
     except HTTPException:
         raise
     except Exception as e:
+        print(f"[DEBUG] update_solicitud_estado endpoint: Exception - {e}")
         raise HTTPException(
             status_code=500,
             detail="Error interno del servidor al procesar la solicitud"

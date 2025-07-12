@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from contextlib import asynccontextmanager
 
 # Cargar variables de entorno desde .env
 load_dotenv()
@@ -14,7 +15,19 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     description=settings.DESCRIPTION,
+    lifespan=None  # Se reemplazará abajo
 )
+
+# Lifespan para inicialización y cierre
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await mongodb.connect_to_mongo()
+    from app.services.firebase_service import firebase_service
+    firebase_service._initialize_firebase()
+    yield
+    await mongodb.close_mongo_connection()
+
+app.router.lifespan_context = lifespan
 
 # CORS
 app.add_middleware(
@@ -24,26 +37,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Events
-@app.on_event("startup")
-async def startup_db_client():
-    await mongodb.connect_to_mongo()
-    
-    # Inicializar Firebase
-    from app.services.firebase_service import firebase_service
-    firebase_service._initialize_firebase()
-    
-    # Migrar datos mock a MongoDB
-    try:
-        from app.models.solicitud_mongo import SolicitudMongoModel
-        await SolicitudMongoModel.migrate_from_mock_data()
-    except Exception as e:
-        print(f"⚠️ Error en migración: {str(e)}")
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    await mongodb.close_mongo_connection()
 
 # Include routers
 app.include_router(api_router, prefix=settings.API_V1_STR)

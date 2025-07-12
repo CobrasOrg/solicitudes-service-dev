@@ -111,39 +111,45 @@ async def get_active_solicitudes():
 async def filter_active_solicitudes(
     especie: Optional[str] = Query(
         None,
-        description="Filtrar por especie (ej: Perro, Gato)",
-        example="Perro"
+        description="Filtrar por especie (ej: Perro, Gato). Múltiples valores separados por coma: Perro,Gato",
+        examples={"value": "Perro", "multiple": "Perro,Gato"}
     ),
     tipo_sangre: Optional[str] = Query(
         None,
-        description="Filtrar por tipo de sangre (ej: DEA 1.1+, A)",
-        example="DEA 1.1+"
+        description="Filtrar por tipo de sangre (ej: DEA 1.1+, A). Múltiples valores separados por coma: DEA 1.1+,A",
+        examples={"value": "DEA 1.1+", "multiple": "DEA 1.1+,A"}
     ),
     urgencia: Optional[str] = Query(
         None,
-        description="Filtrar por nivel de urgencia (Alta, Media, Baja)",
-        example="Alta"
+        description="Filtrar por nivel de urgencia (Alta, Media, Baja). Múltiples valores separados por coma: Alta,Media",
+        examples={"value": "Alta", "multiple": "Alta,Media"}
     ),
     localidad: Optional[str] = Query(
         None,
-        description="Filtrar por localidad (ej: Suba, Chapinero)",
-        example="Suba"
+        description="Filtrar por localidad (ej: Suba, Chapinero). Múltiples valores separados por coma: Suba,Teusaquillo",
+        examples={"value": "Suba", "multiple": "Suba,Teusaquillo"}
     )
 ):
     """
     Filtra las solicitudes activas por uno o más criterios.
     
     Args:
-        especie (Optional[str]): Especie a filtrar
-        tipo_sangre (Optional[str]): Tipo de sangre a filtrar
-        urgencia (Optional[str]): Nivel de urgencia a filtrar
-        localidad (Optional[str]): Localidad a filtrar
+        especie (Optional[str]): Especie a filtrar. Múltiples valores separados por coma: "Perro,Gato"
+        tipo_sangre (Optional[str]): Tipo de sangre a filtrar. Múltiples valores separados por coma: "DEA 1.1+,A"
+        urgencia (Optional[str]): Nivel de urgencia a filtrar. Múltiples valores separados por coma: "Alta,Media"
+        localidad (Optional[str]): Localidad a filtrar. Múltiples valores separados por coma: "Suba,Teusaquillo"
     
     Returns:
         List[Solicitud]: Lista de solicitudes activas que coinciden con los filtros
         
     Raises:
         HTTPException: Si ocurre un error al procesar la solicitud
+        
+    Examples:
+        - Filtrar por una sola localidad: ?localidad=Suba
+        - Filtrar por múltiples localidades: ?localidad=Suba,Teusaquillo
+        - Filtrar por especie y urgencia: ?especie=Perro&urgencia=Alta,Media
+        - Filtrar por múltiples criterios: ?especie=Perro,Gato&localidad=Suba,Chapinero&urgencia=Alta
     """
     try:
         solicitudes = await SolicitudMongoModel.filter_active_solicitudes(
