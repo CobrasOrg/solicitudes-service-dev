@@ -143,7 +143,7 @@ jobs:
           if [ ! -d ".git" ]; then
             git init
             # Usar token por defecto de GitHub Actions (con permisos de Admin)
-            git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/CobrasOrg/solicitudes-service.git
+            git remote add origin https://${{ secrets.GITHUB_TOKEN }}@github.com/CobrasOrg/solicitudes-service.git
           fi
           
           # Hacer commit de los cambios
