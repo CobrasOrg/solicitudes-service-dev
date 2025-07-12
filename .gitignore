@@ -19,59 +19,61 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# Node.js
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-.npm
-.yarn
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-
-# Virtual Environment
+# Virtual environments
 venv/
 env/
 ENV/
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
+env.bak/
+venv.bak/
 
 # Environment variables
 .env
 .env.local
-.env.*.local
+.env.production
 
-# Logs
-*.log
-logs/
+# Reports (PDFs generados localmente)
+reports/
+*.pdf
 
-# Database
-*.db
-*.sqlite3
+# Fly.io
+.fly/
+fly.toml.bak
 
-# Coverage
-.coverage
-htmlcov/
-
-# Unit test / pytest
-.pytest_cache/
-.coverage
-coverage.xml
-*.cover
-
-# mypy
-.mypy_cache/
-
-# Docker
-.docker/
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
 # OS
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Logs
+*.log
+
+# Uploads (para imágenes)
+uploads/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Development files (no sync to production)
+development-files/
+tests/
+pytest.ini
+test_quick.py
+run_tests.py
+sync-to-production.bat
+README-PRODUCTION.md

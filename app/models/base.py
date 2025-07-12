@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from bson import ObjectId
 
 class PyObjectId(ObjectId):
@@ -23,6 +23,4 @@ class BaseDBModel(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    class Config:
-        json_encoders = {ObjectId: str}
-        populate_by_name = True 
+    model_config = ConfigDict(json_encoders={ObjectId: str}, populate_by_name=True) 
