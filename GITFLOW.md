@@ -91,8 +91,15 @@ git push origin --delete release/v1.2.0
 ### **5. Sincronización con Producción**
 
 ```bash
-# Sincronizar main con repositorio de producción
-sync-to-production.bat
+# Después de validar en staging, merge a main
+git checkout main
+git merge develop
+git push origin main
+
+# El workflow ci-cd.yml maneja automáticamente:
+# - Tests de despliegue
+# - Sincronización con repo de producción
+# - Exclusión de archivos de testing
 ```
 
 ### **6. Hotfix (Correcciones Urgentes)**
@@ -182,6 +189,29 @@ chore: tareas de mantenimiento
 - ✅ Testing completo
 - ✅ Verificación manual de funcionalidades
 - ✅ Documentación actualizada
+
+## 🚀 CI/CD Pipeline
+
+### **Workflow: ci-cd.yml**
+
+#### **Push a `develop`:**
+1. ✅ **Tests de despliegue** - Verifica configuración y conectividad
+2. ✅ **Despliegue a staging** - Fly.io (https://solicitudes-staging.fly.dev)
+3. ✅ **Validación** - Probar funcionalidades en staging
+
+#### **Push a `main`:**
+1. ✅ **Tests de despliegue** - Verifica configuración
+2. ✅ **Sincronización automática** - Con repo de producción
+3. ✅ **Exclusión de archivos** - Sin tests, scripts, o archivos de desarrollo
+
+### **Variables de Entorno Requeridas:**
+- `FLY_API_TOKEN` - Token de API de Fly.io
+- `MONGODB_URL` - URL de MongoDB Atlas
+- `MONGODB_DATABASE` - Nombre de la base de datos
+- `CLOUDINARY_CLOUD_NAME` - Cloud name de Cloudinary
+- `CLOUDINARY_API_KEY` - API Key de Cloudinary
+- `CLOUDINARY_API_SECRET` - API Secret de Cloudinary
+- `STAGING_BASE_URL` - URL base de staging
 
 ## 📊 Monitoreo
 

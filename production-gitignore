@@ -1,0 +1,52 @@
+# Archivos de testing y desarrollo (excluidos en producción)
+tests/
+scripts/
+development-files/
+reports/
+.pytest_cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Archivos de configuración de desarrollo
+pytest.ini
+test_*.py
+*_test.py
+
+# Archivos de documentación de testing
+TESTING.md
+TESTING_OPTIMIZATION.md
+DATABASE_SCRIPTS.md
+
+# Archivos de desarrollo
+.env
+.env.local
+.env.development
+.env.test
+
+# Logs
+*.log
+logs/
+
+# Archivos temporales
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos de backup
+*.bak
+*.backup 

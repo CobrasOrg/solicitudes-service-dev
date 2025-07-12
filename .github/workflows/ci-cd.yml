@@ -32,6 +32,7 @@ jobs:
           CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
           CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
           CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          BASE_URL: ${{ secrets.STAGING_BASE_URL }}
 
   # Tests completos (solo en PRs a main)
   full-tests:
@@ -59,6 +60,7 @@ jobs:
           CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
           CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
           CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          BASE_URL: ${{ secrets.STAGING_BASE_URL }}
 
   # Deploy a staging (solo cuando se hace push a develop)
   deploy-to-staging:
@@ -83,8 +85,8 @@ jobs:
           CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
           BASE_URL: ${{ secrets.STAGING_BASE_URL }}
 
-  # Deploy a producción (solo cuando se hace push a main)
-  deploy-to-production:
+  # Sync to production repository (solo cuando se hace push a main)
+  sync-to-production:
     runs-on: ubuntu-latest
     needs: [deployment-tests]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -92,25 +94,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-          
-      - name: Install dependencies
+      - name: Sync to Production Repository
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          echo "🔄 Sincronizando con repositorio de producción..."
+          echo "📦 Excluyendo archivos de testing y desarrollo..."
           
-      - name: Deploy to production repository
-        run: |
           # Configurar git para el repo de producción
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           
           # Crear directorio temporal para producción
           TEMP_DIR=$(mktemp -d)
-          echo "Directorio temporal: $TEMP_DIR"
+          echo "📁 Directorio temporal: $TEMP_DIR"
           
           # Crear archivo de exclusión
           cat > sync-exclude.txt << EOF
@@ -135,6 +130,7 @@ jobs:
           scripts/
           sync-exclude.txt
           .github/
+          production-gitignore
           EOF
           
           # Copiar archivos de producción (excluyendo tests)
@@ -167,6 +163,8 @@ jobs:
           cd ..
           rm -rf "$TEMP_DIR"
           rm sync-exclude.txt
+          
+          echo "🎉 Sincronización completada. El repo de producción maneja su propio despliegue."
           
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
