@@ -142,21 +142,45 @@ jobs:
           # Inicializar git si no existe
           if [ ! -d ".git" ]; then
             git init
-            git remote add origin https://github.com/CobrasOrg/solicitudes-service.git
+            # Usar token por defecto de GitHub Actions (con permisos de Admin)
+            git remote add origin https://${{ secrets.GITHUB_TOKEN }}@github.com/CobrasOrg/solicitudes-service.git
           fi
           
           # Hacer commit de los cambios
           git add .
           git commit -m "Sync from development: $(date)"
           
-          # Push a producción (intentar main primero, luego master)
+          # Intentar push con diferentes estrategias
+          echo "🔄 Intentando push a producción..."
+          
+          # Estrategia 1: Push a main
           if git push origin main; then
             echo "✅ Sincronización exitosa a branch 'main'!"
-          elif git push origin master; then
-            echo "✅ Sincronización exitosa a branch 'master'!"
           else
-            echo "❌ Error al sincronizar con producción"
-            exit 1
+            echo "⚠️ Falló push a main, intentando crear el branch..."
+            
+            # Estrategia 2: Crear main si no existe
+            if git push origin HEAD:main; then
+              echo "✅ Branch 'main' creado y sincronizado!"
+            else
+              echo "⚠️ Falló crear main, intentando master..."
+              
+              # Estrategia 3: Intentar master
+              if git push origin master; then
+                echo "✅ Sincronización exitosa a branch 'master'!"
+              else
+                echo "⚠️ Falló master, intentando crear master..."
+                
+                # Estrategia 4: Crear master
+                if git push origin HEAD:master; then
+                  echo "✅ Branch 'master' creado y sincronizado!"
+                else
+                  echo "❌ Error al sincronizar con producción"
+                  echo "💡 Verifica que el repositorio existe y tienes permisos"
+                  exit 1
+                fi
+              fi
+            fi
           fi
           
           # Limpiar
