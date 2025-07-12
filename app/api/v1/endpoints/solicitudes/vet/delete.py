@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from app.models.solicitud_mongo import SolicitudMongoModel
-from app.services.firebase_service import firebase_service
+
 from app.services.cloudinary_service import upload_image
 import cloudinary.uploader
 

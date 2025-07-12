@@ -8,31 +8,29 @@ class Settings(BaseSettings):
     VERSION: str = "0.2.0"
     DESCRIPTION: str = "API para gestión de solicitudes de donación de sangre con soporte para imágenes y MongoDB"
     
-    # MongoDB
-    MONGODB_URL: str = "mongodb://localhost:27017"
+    # MongoDB - Atlas por defecto, local como fallback
+    MONGODB_URL: str = "mongodb+srv://username:password@cluster.mongodb.net/solicitudes?retryWrites=true&w=majority"
     MONGODB_DATABASE: str = "solicitudes"
+    
+    # MongoDB Testing (base de datos separada para tests)
+    MONGODB_TEST_URL: str = "mongodb+srv://username:password@cluster.mongodb.net/solicitudes_test?retryWrites=true&w=majority"
+    MONGODB_TEST_DATABASE: str = "solicitudes_test"
     
     # Cloudinary
     CLOUDINARY_CLOUD_NAME: str
     CLOUDINARY_API_KEY: str
     CLOUDINARY_API_SECRET: str
     
-    # Firebase Configuration
-    FIREBASE_TYPE: str = "service_account"
-    FIREBASE_PROJECT_ID: Optional[str] = None
-    FIREBASE_PRIVATE_KEY_ID: Optional[str] = None
-    FIREBASE_PRIVATE_KEY: Optional[str] = None
-    FIREBASE_CLIENT_EMAIL: Optional[str] = None
-    FIREBASE_CLIENT_ID: Optional[str] = None
-    FIREBASE_AUTH_URI: str = "https://accounts.google.com/o/oauth2/auth"
-    FIREBASE_TOKEN_URI: str = "https://oauth2.googleapis.com/token"
-    FIREBASE_AUTH_PROVIDER_X509_CERT_URL: str = "https://www.googleapis.com/oauth2/v1/certs"
-    FIREBASE_CLIENT_X509_CERT_URL: Optional[str] = None
-    FIREBASE_STORAGE_BUCKET: Optional[str] = None
+
     
     # Application Configuration
     APP_ENV: str = "development"
     DEBUG: bool = True
+    
+    # Server Configuration
+    HOST: str = "127.0.0.1"
+    PORT: int = 8000
+    BASE_URL: str = "http://127.0.0.1:8000"
     
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = ["*"]

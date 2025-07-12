@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, Body
 from app.schemas.solicitud import Solicitud, SolicitudCreate, SolicitudCreateWithImage, SolicitudCreateInput
 from app.models.solicitud_mongo import SolicitudMongoModel
-from app.services.firebase_service import firebase_service
+
 from app.services.cloudinary_service import upload_image
 from datetime import datetime
 import secrets
@@ -64,7 +64,7 @@ def get_solicitud_create_input(
                         "fecha_creacion": "2025-06-13T21:01:38.439421",
                         "urgencia": "Alta",
                         "estado": "Activa",
-                        "foto_mascota": "https://firebasestorage.googleapis.com/v0/b/project-id.appspot.com/o/mascotas%2Fimage.jpg"
+                        "foto_mascota": "https://res.cloudinary.com/cloud_name/image/upload/v1234567890/mascotas/image.jpg"
                     }
                 }
             }

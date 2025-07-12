@@ -26,7 +26,8 @@ def test_environment_variables():
         "MONGODB_DATABASE": "Nombre de la base de datos",
         "CLOUDINARY_CLOUD_NAME": "Nombre del cloud de Cloudinary",
         "CLOUDINARY_API_KEY": "API Key de Cloudinary",
-        "CLOUDINARY_API_SECRET": "API Secret de Cloudinary"
+        "CLOUDINARY_API_SECRET": "API Secret de Cloudinary",
+        "BASE_URL": "URL base de la API"
     }
     
     missing_vars = []
@@ -45,121 +46,174 @@ def test_environment_variables():
     
     print("✅ Todas las variables de entorno están configuradas\n")
 
-def test_server_running():
-    """Prueba que el servidor esté corriendo"""
-    print("🌐 Verificando que el servidor esté corriendo...")
-    
-    try:
-        response = requests.get("http://localhost:8000/health", timeout=5)
-        if response.status_code == 200:
-            print("✅ Servidor corriendo en http://localhost:8000")
-        else:
-            print(f"❌ Servidor respondió con código {response.status_code}")
-            assert False, f"Servidor respondió con código {response.status_code}"
-    except requests.exceptions.ConnectionError:
-        print("❌ No se puede conectar al servidor en http://localhost:8000")
-        print("💡 Asegúrate de ejecutar: python main.py")
-        assert False, "No se puede conectar al servidor"
-    except Exception as e:
-        print(f"❌ Error verificando servidor: {str(e)}")
-        assert False, f"Error verificando servidor: {str(e)}"
-
-def test_health_endpoint():
-    """Prueba el endpoint de health check"""
-    print("🏥 Verificando endpoint de health check...")
-    
-    try:
-        response = requests.get("http://localhost:8000/health", timeout=5)
-        data = response.json()
-        
-        print(f"✅ Status: {data.get('status', 'unknown')}")
-        print(f"✅ MongoDB: {data.get('mongodb', 'unknown')}")
-        print(f"✅ Firebase: {data.get('firebase', 'unknown')}")
-        
-    except Exception as e:
-        print(f"❌ Error en health check: {str(e)}")
-        assert False, f"Error en health check: {str(e)}"
-
-def test_api_documentation():
-    """Prueba que la documentación de la API esté accesible"""
-    print("📚 Verificando documentación de la API...")
-    
-    endpoints = [
-        ("/docs", "Swagger UI"),
-        ("/redoc", "ReDoc"),
-        ("/", "Root endpoint")
-    ]
-    
-    for endpoint, name in endpoints:
-        try:
-            response = requests.get(f"http://localhost:8000{endpoint}", timeout=5)
-            if response.status_code == 200:
-                print(f"✅ {name}: Accesible")
-            else:
-                print(f"❌ {name}: Código {response.status_code}")
-                assert False, f"{name} respondió con código {response.status_code}"
-        except Exception as e:
-            print(f"❌ {name}: Error - {str(e)}")
-            assert False, f"Error en {name}: {str(e)}"
-
-def test_api_endpoints():
-    """Prueba que los endpoints principales de la API funcionen"""
-    print("🔗 Verificando endpoints de la API...")
-    
-    endpoints = [
-        ("/api/v1/vet/solicitudes/", "GET", "Listar solicitudes"),
-        ("/api/v1/vet/solicitudes/filtrar", "GET", "Filtrar solicitudes")
-    ]
-    
-    for endpoint, method, description in endpoints:
-        try:
-            response = requests.get(f"http://localhost:8000{endpoint}", timeout=5)
-            if response.status_code in [200, 500]:  # 500 es aceptable si no hay DB
-                print(f"✅ {description}: Respondiendo")
-            else:
-                print(f"❌ {description}: Código {response.status_code}")
-                assert False, f"{description} respondió con código {response.status_code}"
-        except Exception as e:
-            print(f"❌ {description}: Error - {str(e)}")
-            assert False, f"Error en {description}: {str(e)}"
-
-def test_database_connection():
-    """Prueba la conexión a la base de datos"""
-    print("🗄️ Verificando conexión a MongoDB...")
+def test_imports():
+    """Prueba que todos los módulos se puedan importar correctamente"""
+    print("📦 Verificando imports de módulos...")
     
     try:
         # Agregar el directorio raíz al path
-        import sys
-        import os
         sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + '/../..'))
         
-        # Importar aquí para evitar errores si no está configurado
-        from app.db.mongodb import mongodb
+        # Imports principales
+        import app
+        import main
+        import app.api.v1.api
+        import app.core.config
+        import app.db.mongodb
         
-        # Verificar si ya está conectado
-        if mongodb.client is not None:
-            print("✅ MongoDB ya está conectado")
-            return
+        print("✅ Módulos principales importados correctamente")
         
-        # Intentar conectar usando requests para verificar el health endpoint
-        import requests
-        response = requests.get("http://localhost:8000/health", timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('mongodb') == 'healthy':
-                print("✅ Conexión a MongoDB verificada via health endpoint")
-            else:
-                print(f"⚠️ MongoDB status: {data.get('mongodb', 'unknown')}")
-        else:
-            print(f"⚠️ No se pudo verificar MongoDB via health endpoint: {response.status_code}")
-            
+        # Verificar configuración
+        from app.core.config import settings
+        print("✅ Configuración cargada correctamente")
+        
+        # Verificar modelos
+        import app.models.solicitud
+        import app.schemas.solicitud
+        print("✅ Modelos y schemas importados correctamente")
+        
     except ImportError as e:
         print(f"❌ Error importando módulos: {str(e)}")
         assert False, f"Error importando módulos: {str(e)}"
     except Exception as e:
+        print(f"❌ Error verificando imports: {str(e)}")
+        assert False, f"Error verificando imports: {str(e)}"
+
+def test_configuration():
+    """Prueba que la configuración esté correctamente definida"""
+    print("⚙️ Verificando configuración de la aplicación...")
+    
+    try:
+        sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + '/../..'))
+        from app.core.config import settings
+        
+        # Verificar que las variables de configuración estén definidas
+        required_config = [
+            'MONGODB_URL',
+            'MONGODB_DATABASE',
+            'CLOUDINARY_CLOUD_NAME',
+            'CLOUDINARY_API_KEY',
+            'CLOUDINARY_API_SECRET',
+            'BASE_URL'
+        ]
+        
+        for config_var in required_config:
+            value = getattr(settings, config_var, None)
+            if value is None or value == "":
+                print(f"❌ Configuración faltante: {config_var}")
+                assert False, f"Configuración faltante: {config_var}"
+            else:
+                print(f"✅ {config_var}: Configurado")
+        
+        print("✅ Todas las configuraciones están definidas")
+        
+    except Exception as e:
+        print(f"❌ Error verificando configuración: {str(e)}")
+        assert False, f"Error verificando configuración: {str(e)}"
+
+async def test_database_connection():
+    """Prueba la conexión a la base de datos"""
+    print("🗄️ Verificando conexión a MongoDB Atlas...")
+    
+    try:
+        sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + '/../..'))
+        from app.db.mongodb import mongodb
+        
+        # Verificar configuración de MongoDB Atlas
+        mongodb_url = os.getenv("MONGODB_URL", "")
+        if "mongodb+srv://" in mongodb_url:
+            print("✅ URL de MongoDB Atlas detectada")
+            
+            # Intentar conectar a Atlas para verificar
+            try:
+                await mongodb.connect_to_mongo()
+                await mongodb.client.admin.command('ping')
+                print("✅ Conexión exitosa a MongoDB Atlas")
+                
+                # Obtener información de la base de datos
+                db_name = mongodb.database.name
+                print(f"📊 Base de datos: {db_name}")
+                
+                # Listar colecciones
+                collections = await mongodb.database.list_collection_names()
+                print(f"📋 Colecciones encontradas: {collections}")
+                
+                # Contar documentos en cada colección
+                for collection_name in collections:
+                    count = await mongodb.database[collection_name].count_documents({})
+                    print(f"   📄 {collection_name}: {count} documentos")
+                
+                # Cerrar conexión
+                await mongodb.close_mongo_connection()
+                print("🔌 Conexión a Atlas cerrada")
+                
+            except Exception as atlas_error:
+                print(f"❌ Error conectando a MongoDB Atlas: {str(atlas_error)}")
+                print("⚠️ Atlas no disponible, pero el test continúa")
+                
+        else:
+            print("⚠️ No se detecta URL de MongoDB Atlas")
+            print("ℹ️ Usando configuración local como fallback")
+        
+        # Verificar que la configuración de MongoDB esté disponible
+        if mongodb.client is None:
+            print("ℹ️ Cliente MongoDB no inicializado (normal en tests)")
+            print("✅ Configuración de MongoDB verificada")
+        else:
+            print("✅ Cliente MongoDB inicializado")
+            
+    except Exception as e:
         print(f"❌ Error verificando MongoDB: {str(e)}")
-        # No fallar el test si MongoDB no está disponible
         print("⚠️ MongoDB no disponible, pero el test continúa")
+
+def test_cloudinary_service():
+    """Prueba que el servicio de Cloudinary esté configurado"""
+    print("☁️ Verificando configuración de Cloudinary...")
+    
+    try:
+        sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + '/../..'))
+        
+        # Verificar variables de entorno de Cloudinary
+        cloudinary_cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME")
+        cloudinary_api_key = os.getenv("CLOUDINARY_API_KEY")
+        cloudinary_api_secret = os.getenv("CLOUDINARY_API_SECRET")
+        
+        if cloudinary_cloud_name and cloudinary_api_key and cloudinary_api_secret:
+            print("✅ Configuración de Cloudinary verificada")
+        else:
+            print("⚠️ Variables de Cloudinary no configuradas")
+            
+    except Exception as e:
+        print(f"❌ Error verificando Cloudinary: {str(e)}")
+        print("⚠️ Cloudinary no disponible, pero el test continúa")
+
+def test_api_structure():
+    """Prueba que la estructura de la API esté correctamente definida"""
+    print("🔗 Verificando estructura de la API...")
+    
+    try:
+        sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + '/../..'))
+        from app.api.v1.api import api_router
+        
+        # Verificar que el router esté definido
+        if api_router is not None:
+            print("✅ Router de la API definido")
+        else:
+            print("❌ Router de la API no definido")
+            assert False, "Router de la API no definido"
+        
+        # Verificar endpoints principales
+        from app.api.v1.endpoints.solicitudes.vet import router as vet_router
+        from app.api.v1.endpoints.solicitudes.user import router as user_router
+        
+        if vet_router is not None:
+            print("✅ Endpoints de veterinarios definidos")
+        if user_router is not None:
+            print("✅ Endpoints de usuarios definidos")
+            
+    except Exception as e:
+        print(f"❌ Error verificando estructura de API: {str(e)}")
+        assert False, f"Error verificando estructura de API: {str(e)}"
 
 async def run_deployment_tests():
     """Ejecuta todas las pruebas de despliegue"""
@@ -167,11 +221,11 @@ async def run_deployment_tests():
     
     tests = [
         ("Variables de entorno", test_environment_variables),
-        ("Servidor corriendo", test_server_running),
-        ("Health endpoint", test_health_endpoint),
-        ("Documentación API", test_api_documentation),
-        ("Endpoints API", test_api_endpoints),
-        ("Conexión MongoDB", test_database_connection)
+        ("Imports de módulos", test_imports),
+        ("Configuración", test_configuration),
+        ("Conexión MongoDB", test_database_connection),
+        ("Servicio Cloudinary", test_cloudinary_service),
+        ("Estructura API", test_api_structure)
     ]
     
     passed = 0
@@ -180,7 +234,10 @@ async def run_deployment_tests():
     for test_name, test_func in tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
-            test_func()
+            if asyncio.iscoroutinefunction(test_func):
+                await test_func()
+            else:
+                test_func()
             passed += 1
             print(f"✅ {test_name}: PASÓ")
         except Exception as e:

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Body, Request
 from app.schemas.solicitud import SolicitudUpdate, SolicitudEstadoUpdate, Solicitud
 from app.models.solicitud_mongo import SolicitudMongoModel
-from app.services.firebase_service import firebase_service
+
 from app.constants.solicitudes import ESTADOS_PERMITIDOS
 from typing import Optional, Union
 import json
@@ -35,7 +35,7 @@ router = APIRouter()
                         "fecha_creacion": "2024-02-14T10:30:00",
                         "urgencia": "Alta",
                         "estado": "Activa",
-                        "foto_mascota": "https://firebasestorage.googleapis.com/v0/b/project-id.appspot.com/o/mascotas%2Fnew-image.jpg"
+                        "foto_mascota": "https://res.cloudinary.com/cloud_name/image/upload/v1234567890/mascotas/new-image.jpg"
                     }
                 }
             }

@@ -13,7 +13,14 @@ from typing import Dict, Any
 import time
 
 # Configuración
-BASE_URL = "http://localhost:8000"
+import os
+from dotenv import load_dotenv
+
+# Cargar variables de entorno
+load_dotenv()
+
+# Obtener BASE_URL desde variables de entorno o usar valor por defecto
+BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:8000")
 ENDPOINT = "/api/v1/vet/solicitudes/"
 
 # Obtener la ruta del directorio actual del script
@@ -77,12 +84,12 @@ async def populate_database():
     try:
         response = requests.get(f"{BASE_URL}/docs", timeout=5)
         if response.status_code != 200:
-            print("❌ Error: El servidor no está corriendo en http://localhost:8000")
-            print("   Ejecuta: uvicorn app.main:app --reload")
+            print(f"❌ Error: El servidor no está corriendo en {BASE_URL}")
+            print("   Ejecuta: python main.py")
             return
     except requests.exceptions.ConnectionError:
-        print("❌ Error: No se puede conectar al servidor en http://localhost:8000")
-        print("   Ejecuta: uvicorn app.main:app --reload")
+        print(f"❌ Error: No se puede conectar al servidor en {BASE_URL}")
+        print("   Ejecuta: python main.py")
         return
     
     # Cargar datos

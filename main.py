@@ -22,8 +22,6 @@ app = FastAPI(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await mongodb.connect_to_mongo()
-    from app.services.firebase_service import firebase_service
-    firebase_service._initialize_firebase()
     yield
     await mongodb.close_mongo_connection()
 
@@ -47,10 +45,10 @@ async def root():
         "message": "Bienvenido a Solicitudes Service API",
         "version": settings.VERSION,
         "features": [
-            "Gestión de solicitudes de donación de sangre",
-            "Soporte para imágenes con Firebase Storage",
-            "Base de datos MongoDB",
-            "Endpoints para veterinarias y usuarios"
+                    "Gestión de solicitudes de donación de sangre",
+        "Soporte para imágenes con Cloudinary",
+        "Base de datos MongoDB",
+        "Endpoints para veterinarias y usuarios"
         ]
     }
 
@@ -69,9 +67,9 @@ async def health_check():
     return {
         "status": "ok",
         "mongodb": mongo_status,
-        "firebase": "initialized"
+        "cloudinary": "configured"
     }
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True) 
+    uvicorn.run("main:app", host=settings.HOST, port=settings.PORT, reload=True) 

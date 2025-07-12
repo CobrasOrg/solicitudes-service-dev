@@ -26,7 +26,7 @@ pip install -r requirements.txt
 ### 4. Configurar variables de entorno
 ```bash
 cp env.example .env
-# Editar .env con tus configuraciones de MongoDB y Firebase
+# Editar .env con tus configuraciones de MongoDB Atlas y Cloudinary
 ```
 
 ### 5. Ejecutar el servidor
@@ -70,14 +70,50 @@ python scripts/testing/run_tests.py
 ```
 Ejecuta toda la suite de tests con optimizaciones para velocidad.
 
-### Tests de Despliegue
+### Tests de Despliegue con Reporte PDF
 ```bash
 # Pruebas de despliegue básicas
 python scripts/deployment/test_deployment.py
 
+# Tests de despliegue con reporte PDF (recomendado)
+python scripts/deployment/run_deployment_tests.py
+
 # Tests de despliegue con pytest
 pytest tests/test_deployment.py -v
 ```
+
+### Reportes PDF de Testing
+
+El sistema genera reportes PDF profesionales con:
+- **Logo de universidad** (opcional)
+- **Estadísticas detalladas** de resultados
+- **Gráficos y tablas** de rendimiento
+- **Recomendaciones** basadas en resultados
+- **Información del proyecto** y fecha de generación
+
+#### Configuración de Reportes PDF
+
+1. **Instalar dependencias**:
+   ```bash
+   pip install reportlab Pillow
+   ```
+
+2. **Agregar logo de universidad** (opcional):
+   - Coloca el archivo PNG en `assets/university_logo.png`
+   - El reporte lo incluirá automáticamente
+
+3. **Ejecutar con reporte**:
+   ```bash
+   python scripts/deployment/run_deployment_tests.py
+   ```
+
+#### Características del Reporte PDF
+
+- ✅ **Detección automática de entorno**: Solo genera PDF en desarrollo local
+- ✅ **Base de datos separada**: Tests no afectan datos de producción
+- ✅ **Reporte profesional**: Con plantilla formal y estadísticas
+- ✅ **Recomendaciones**: Basadas en resultados de tests
+- ✅ **Archivos ignorados**: PDFs no se suben al repositorio
 
 ### GitHub Actions
 Los tests de despliegue se ejecutan automáticamente en GitHub Actions:

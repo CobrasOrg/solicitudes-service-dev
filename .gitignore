@@ -33,6 +33,14 @@ venv.bak/
 .env.local
 .env.production
 
+# Reports (PDFs generados localmente)
+reports/
+*.pdf
+
+# Fly.io
+.fly/
+fly.toml.bak
+
 # IDE
 .vscode/
 .idea/

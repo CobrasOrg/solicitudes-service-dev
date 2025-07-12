@@ -5,6 +5,34 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2025-07-12
+
+### Added
+- **Sistema de reportes PDF profesionales** para pruebas de despliegue
+- **Base de datos separada para testing** (`solicitudes_test`) para no afectar datos de producción
+- **Detección automática de entorno CI/CD** para optimizar generación de reportes
+- **Scripts de testing mejorados** con soporte para reportes PDF
+- **Configuración de variables de entorno para testing** separadas de producción
+- **Documentación completa de reportes PDF** en TESTING.md
+- **Estructura de assets** para logos de universidad en reportes
+
+### Changed
+- **Reorganización de scripts de testing** en estructura más lógica
+- **Optimización de configuración de testing** con variables separadas
+- **Mejora en documentación** con ejemplos de uso de reportes PDF
+- **Actualización de .gitignore** para excluir reportes PDF del repositorio
+- **Refactorización de scripts de deployment** para incluir generación de PDF
+
+### Removed
+- **Scripts de testing obsoletos** que no funcionaban correctamente
+- **Dependencias problemáticas** (matplotlib) que causaban errores de instalación
+- **Archivos de reportes duplicados** en ubicaciones incorrectas
+
+### Performance
+- **Tests más rápidos** con base de datos separada
+- **Generación de PDF optimizada** solo en entorno local
+- **Mejor gestión de recursos** con detección de entorno CI/CD
+
 ## [0.1.2] - 2025-07-11
 
 ### Changed
