@@ -6,7 +6,7 @@
 set -e  # Salir si hay errores
 
 echo "🔄 Sincronizando con repositorio de producción..."
-echo "📦 Excluyendo archivos de testing y desarrollo..."
+echo "📦 Excluyendo archivos de testing, desarrollo y assets..."
 
 # Verificar que estamos en main branch
 if [ "$(git branch --show-current)" != "main" ]; then
@@ -43,9 +43,22 @@ scripts/
 sync-exclude.txt
 .github/
 production-gitignore
+assets/
+reports/
+.pytest_cache/
+__pycache__/
+.coverage
+coverage.xml
+.mypy_cache/
+.ruff_cache/
+.vscode/
+.idea/
+*.log
+*.tmp
+*.bak
 EOF
 
-# Copiar archivos de producción (excluyendo tests)
+# Copiar archivos de producción (excluyendo tests, assets y desarrollo)
 rsync -av --exclude-from=sync-exclude.txt . "$TEMP_DIR/"
 
 # Cambiar al directorio temporal
@@ -88,4 +101,5 @@ rm -rf "$TEMP_DIR"
 rm sync-exclude.txt
 
 echo "🎉 Sincronización completada!"
-echo "📋 El repo de producción maneja su propio despliegue" 
+echo "📋 El repo de producción maneja su propio despliegue"
+echo "🚫 Assets y archivos de desarrollo excluidos" 
