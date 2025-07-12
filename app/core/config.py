@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     
     # Server Configuration
-    HOST: str = "127.0.0.1"
+    HOST: str = "0.0.0.0"
     PORT: int = 8000
     BASE_URL: str = "http://127.0.0.1:8000"
     
