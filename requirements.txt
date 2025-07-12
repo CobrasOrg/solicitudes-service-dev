@@ -12,6 +12,9 @@ python-multipart==0.0.9
 motor==3.7.1
 pymongo==4.13.0
 
+# Cloudinary
+cloudinary==1.36.0
+
 
 
 # Desarrollo
