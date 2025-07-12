@@ -1,10 +1,8 @@
-name: Deploy to Staging
+name: Deploy to Production
 
 on:
   push:
-    branches: [ develop ]
-  pull_request:
-    branches: [ develop ]
+    branches: [ main ]
 
 jobs:
   test:
@@ -48,7 +46,6 @@ jobs:
   deploy:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
     
     steps:
     - uses: actions/checkout@v4
@@ -63,7 +60,7 @@ jobs:
         curl -L https://fly.io/install.sh | sh
         echo "$HOME/.fly/bin" >> $GITHUB_PATH
     
-    - name: Deploy to Fly.io Staging
+    - name: Deploy to Fly.io Production
       run: |
         flyctl deploy --config fly.toml
       env:
