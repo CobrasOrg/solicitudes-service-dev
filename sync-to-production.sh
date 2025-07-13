@@ -67,7 +67,12 @@ cd "$TEMP_DIR"
 # Inicializar git si no existe
 if [ ! -d ".git" ]; then
     git init
-    git remote add origin https://github.com/CobrasOrg/solicitudes-service.git
+    # Usar token de GitHub para autenticación
+    if [ -n "$GITHUB_TOKEN" ]; then
+        git remote add origin https://x-access-token:$GITHUB_TOKEN@github.com/CobrasOrg/solicitudes-service.git
+    else
+        git remote add origin https://github.com/CobrasOrg/solicitudes-service.git
+    fi
 fi
 
 # Hacer commit de los cambios
