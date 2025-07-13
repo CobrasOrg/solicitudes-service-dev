@@ -12,5 +12,5 @@ api_router = APIRouter()
 # api_router.include_router(items.router, prefix="/items", tags=["items"])
 
 api_router.include_router(base.router, prefix="/base", tags=["base"])
-api_router.include_router(user_router, prefix="/user/solicitudes", tags=["solicitudes-user"])
-api_router.include_router(vet_router, prefix="/vet/solicitudes", tags=["solicitudes-vet"]) 
+api_router.include_router(user_router, prefix="/solicitudes/user", tags=["solicitudes-user"])
+api_router.include_router(vet_router, prefix="/solicitudes/vet", tags=["solicitudes-vet"]) 

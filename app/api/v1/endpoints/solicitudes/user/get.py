@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException, Query
-from typing import List, Optional
+from fastapi import APIRouter, HTTPException, Query, Depends
+from typing import List, Optional, Annotated
 from app.schemas.solicitud import Solicitud
+from app.schemas.auth import AuthenticatedUser
 from app.models.solicitud_mongo import SolicitudMongoModel
+from app.api.dependencies import get_current_user_owner
 
 router = APIRouter()
 
@@ -47,7 +49,9 @@ router = APIRouter()
         }
     }
 )
-async def get_active_solicitudes():
+async def get_active_solicitudes(
+    current_user: Annotated[AuthenticatedUser, Depends(get_current_user_owner)]
+):
     """
     Obtiene todas las solicitudes activas.
     
@@ -109,6 +113,7 @@ async def get_active_solicitudes():
     }
 )
 async def filter_active_solicitudes(
+    current_user: Annotated[AuthenticatedUser, Depends(get_current_user_owner)],
     especie: Optional[str] = Query(
         None,
         description="Filtrar por especie (ej: Perro, Gato). Múltiples valores separados por coma: Perro,Gato",
@@ -213,7 +218,10 @@ async def filter_active_solicitudes(
         }
     }
 )
-async def get_solicitud_by_id(solicitud_id: str):
+async def get_solicitud_by_id(
+    solicitud_id: str,
+    current_user: Annotated[AuthenticatedUser, Depends(get_current_user_owner)]
+):
     """
     Obtiene una solicitud específica por su ID.
     
