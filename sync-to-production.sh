@@ -67,6 +67,8 @@ cd "$TEMP_DIR"
 # Inicializar git si no existe
 if [ ! -d ".git" ]; then
     git init
+    # Configurar branch por defecto como main
+    git branch -M main
     # Usar token de GitHub para autenticación
     if [ -n "$GITHUB_TOKEN" ]; then
         git remote add origin https://x-access-token:$GITHUB_TOKEN@github.com/CobrasOrg/solicitudes-service.git
@@ -82,21 +84,30 @@ git commit -m "Sync from development: $(date)"
 # Intentar push con diferentes estrategias
 echo "🔄 Intentando push a producción..."
 
+# Verificar que el token está configurado
+if [ -z "$GITHUB_TOKEN" ]; then
+    echo "❌ Error: GITHUB_TOKEN no está configurado"
+    echo "💡 Agrega PRODUCTION_SYNC_TOKEN a los secrets del repositorio"
+    exit 1
+fi
+
 # Estrategia 1: Push a main
 if git push origin main; then
     echo "✅ Sincronización exitosa a branch 'main'!"
 elif git push origin HEAD:main; then
     echo "✅ Branch 'main' creado y sincronizado!"
-elif git push origin master; then
-    echo "✅ Sincronización exitosa a branch 'master'!"
-elif git push origin HEAD:master; then
-    echo "✅ Branch 'master' creado y sincronizado!"
 else
     echo "❌ Error al sincronizar con producción"
     echo "💡 Verifica que:"
     echo "   - El repositorio CobrasOrg/solicitudes-service existe"
-    echo "   - Tienes permisos de escritura"
-    echo "   - Tu token de GitHub está configurado"
+    echo "   - Tienes permisos de escritura en el repositorio"
+    echo "   - El token PRODUCTION_SYNC_TOKEN tiene permisos de repo"
+    echo "   - El token no ha expirado"
+    echo ""
+    echo "🔍 Información de debug:"
+    echo "   - Token configurado: ${GITHUB_TOKEN:0:10}..."
+    echo "   - Repositorio destino: CobrasOrg/solicitudes-service"
+    echo "   - Branch actual: $(git branch --show-current)"
     exit 1
 fi
 
