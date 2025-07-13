@@ -181,91 +181,62 @@ chore: tareas de mantenimiento
 ## 🧪 Testing Obligatorio
 
 ### **Antes de Merge a Develop**
-- ✅ `python test_quick.py` debe pasar
-- ✅ `pytest` debe pasar
-- ✅ Todos los tests deben estar verdes
+- ✅ `python run_tests.py quick` debe pasar (tests críticos)
+- ✅ Tests de despliegue deben pasar
+- ✅ Todos los tests críticos deben estar verdes
 
-### **Antes de Release**
-- ✅ Testing completo
-- ✅ Verificación manual de funcionalidades
+### **Antes de Release (Merge a Main)**
+- ✅ Tests ya fueron ejecutados en develop
+- ✅ Verificación manual de funcionalidades en staging
 - ✅ Documentación actualizada
+
+### **Flujo de Testing**
+1. **Desarrollo**: Tests locales con `python run_tests.py quick`
+2. **Develop**: Tests automáticos en CI/CD
+3. **Main**: Sin tests (ya validados en develop)
+4. **Producción**: Despliegue automático desde main
+
+### **Tests Críticos para CI/CD**
+Los siguientes tests se ejecutan automáticamente en el pipeline:
+
+#### **Tests de Despliegue (siempre)**
+- ✅ Configuración de la aplicación
+- ✅ Conexión a MongoDB
+- ✅ Configuración de Cloudinary
+- ✅ Endpoints básicos (health, root)
+
+#### **Tests de Funcionalidad (solo en develop)**
+- ✅ Creación de solicitudes
+- ✅ Obtención de solicitudes
+- ✅ Actualización de estados
+- ✅ Filtrado por estado
+
+#### **Tests Completos (desarrollo local)**
+- ✅ Todos los tests de despliegue
+- ✅ Todos los tests de funcionalidad
+- ✅ Tests de múltiples filtros
+- ✅ Tests de autenticación
 
 ## 🚀 CI/CD Pipeline
 
 ### **Workflow: ci-cd.yml**
 
 #### **Push a `develop`:**
-1. ✅ **Tests de despliegue** - Verifica configuración y conectividad
-2. ✅ **Despliegue a staging** - Fly.io (https://solicitudes-staging.fly.dev)
-3. ✅ **Validación** - Probar funcionalidades en staging
+1. ✅ **Tests críticos de despliegue** - Verifica configuración y conectividad
+2. ✅ **Tests rápidos de funcionalidad** - Validación de endpoints principales
+3. ✅ **Despliegue a staging** - Fly.io (https://solicitudes-staging.fly.dev)
+4. ✅ **Validación** - Probar funcionalidades en staging
 
 #### **Push a `main`:**
-1. ✅ **Tests de despliegue** - Verifica configuración
-2. ✅ **Sincronización automática** - Con repo de producción
-3. ✅ **Exclusión de archivos** - Sin tests, scripts, o archivos de desarrollo
+1. ✅ **Sincronización automática** - Con repo de producción
+2. ✅ **Sin tests** - Ya validados en develop
+3. ✅ **Despliegue a producción** - Automático desde repo de producción
+
+### **Flujo Optimizado:**
+```
+Desarrollo → Tests Locales → Push a Develop → Tests CI/CD → Staging → 
+Validación Manual → Merge a Main → Producción
+```
 
 ### **Variables de Entorno Requeridas:**
-- `FLY_API_TOKEN` - Token de API de Fly.io
-- `MONGODB_URL` - URL de MongoDB Atlas
-- `MONGODB_DATABASE` - Nombre de la base de datos
-- `CLOUDINARY_CLOUD_NAME` - Cloud name de Cloudinary
-- `CLOUDINARY_API_KEY` - API Key de Cloudinary
-- `CLOUDINARY_API_SECRET` - API Secret de Cloudinary
-- `STAGING_BASE_URL` - URL base de staging
-
-## 📊 Monitoreo
-
-### **Estado de Ramas**
-```bash
-# Ver ramas locales
-git branch
-
-# Ver ramas remotas
-git branch -r
-
-# Ver todas las ramas
-git branch -a
-```
-
-### **Historial de Tags**
-```bash
-# Ver tags
-git tag
-
-# Ver información de un tag
-git show v1.2.0
-```
-
-## 🚨 Casos Especiales
-
-### **Rollback de Release**
-```bash
-# Revertir último commit en main
-git checkout main
-git revert HEAD
-git push origin main
-
-# Crear nuevo hotfix si es necesario
-git checkout -b hotfix/rollback-release
-```
-
-### **Merge Conflict**
-```bash
-# Resolver conflictos
-git status
-# Editar archivos con conflictos
-git add .
-git commit -m "fix: resolver conflictos de merge"
-```
-
-## 📞 Soporte
-
-Si tienes problemas con GitFlow:
-1. Revisa este documento
-2. Consulta con el equipo
-3. Verifica las reglas de protección en GitHub
-4. Asegúrate de que los tests pasen antes de merge
-
----
-
-**Nota**: Este modelo se aplica a todos los repositorios del proyecto (frontend y backend). 
+- `

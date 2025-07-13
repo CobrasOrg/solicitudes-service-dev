@@ -87,8 +87,10 @@ STAGING_BASE_URL=https://solicitudes-staging.fly.dev
 ### **Producción:**
 1. Cuando esté listo, merge `develop` a `main`
 2. Push a `main`
-3. GitHub Actions sincroniza con repo de producción
-4. Repo de producción despliega automáticamente a producción
+3. GitHub Actions ejecuta automáticamente:
+   - Tests críticos de despliegue
+   - Sincronización con repo de producción (`CobrasOrg/solicitudes-service`)
+4. El repo de producción maneja su propio despliegue a producción
 
 ## 📊 **URLs de despliegue**
 

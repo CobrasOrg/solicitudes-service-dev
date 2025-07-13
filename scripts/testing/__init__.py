@@ -1,1 +1,1 @@
-# Testing scripts package 
+# Scripts de testing para el servicio de solicitudes 

@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Body, Request
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Body, Request, Depends
+from typing import Optional, Union, Annotated
 from app.schemas.solicitud import SolicitudUpdate, SolicitudEstadoUpdate, Solicitud
+from app.schemas.auth import AuthenticatedUser
 from app.models.solicitud_mongo import SolicitudMongoModel
+from app.api.dependencies import get_current_user_clinic
 
 from app.constants.solicitudes import ESTADOS_PERMITIDOS
-from typing import Optional, Union
 import json
 from app.services.cloudinary_service import upload_image
 import cloudinary.uploader
@@ -67,6 +69,7 @@ router = APIRouter()
     }
 )
 async def update_solicitud(
+    current_user: Annotated[AuthenticatedUser, Depends(get_current_user_clinic)],
     request: Request,
     solicitud_id: str,
     especie: Optional[str] = Form(None, description="Nueva especie de la mascota"),
@@ -185,7 +188,11 @@ async def update_solicitud(
         }
     }
 )
-async def update_solicitud_estado(solicitud_id: str, estado_update: SolicitudEstadoUpdate):
+async def update_solicitud_estado(
+    solicitud_id: str, 
+    estado_update: SolicitudEstadoUpdate,
+    current_user: Annotated[AuthenticatedUser, Depends(get_current_user_clinic)]
+):
     """
     Actualiza el estado de una solicitud existente.
     Endpoint exclusivo para veterinarias.

@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException, Query
-from typing import List, Optional
+from fastapi import APIRouter, HTTPException, Query, Depends
+from typing import List, Optional, Annotated
 from app.schemas.solicitud import Solicitud
+from app.schemas.auth import AuthenticatedUser
 from app.models.solicitud_mongo import SolicitudMongoModel
 from app.constants.solicitudes import ESTADOS_PERMITIDOS
+from app.api.dependencies import get_current_user_clinic
 
 router = APIRouter()
 
@@ -48,7 +50,9 @@ router = APIRouter()
         }
     }
 )
-async def get_all_solicitudes():
+async def get_all_solicitudes(
+    current_user: Annotated[AuthenticatedUser, Depends(get_current_user_clinic)]
+):
     """
     Obtiene todas las solicitudes independientemente de su estado.
     Endpoint exclusivo para veterinarias.
@@ -119,6 +123,7 @@ async def get_all_solicitudes():
     }
 )
 async def get_solicitudes_by_status(
+    current_user: Annotated[AuthenticatedUser, Depends(get_current_user_clinic)],
     estado: Optional[str] = Query(
         default=None,
         description="Estado de las solicitudes a filtrar",
@@ -246,7 +251,10 @@ async def get_solicitudes_by_status(
         }
     }
 )
-async def get_solicitud_by_id(solicitud_id: str):
+async def get_solicitud_by_id(
+    solicitud_id: str,
+    current_user: Annotated[AuthenticatedUser, Depends(get_current_user_clinic)]
+):
     """
     Obtiene una solicitud específica por su ID.
     Endpoint exclusivo para veterinarias.

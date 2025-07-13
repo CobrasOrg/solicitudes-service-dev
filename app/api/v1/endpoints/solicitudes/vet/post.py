@@ -1,6 +1,9 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, Body
+from typing import Annotated
 from app.schemas.solicitud import Solicitud, SolicitudCreate, SolicitudCreateWithImage, SolicitudCreateInput
+from app.schemas.auth import AuthenticatedUser
 from app.models.solicitud_mongo import SolicitudMongoModel
+from app.api.dependencies import get_current_user_clinic
 
 from app.services.cloudinary_service import upload_image
 from datetime import datetime
@@ -96,6 +99,7 @@ def get_solicitud_create_input(
     }
 )
 async def create_solicitud(
+    current_user: Annotated[AuthenticatedUser, Depends(get_current_user_clinic)],
     solicitud_data: SolicitudCreateInput = Depends(get_solicitud_create_input),
     foto_mascota: UploadFile = File(None, description="Imagen de la mascota (opcional)")
 ):

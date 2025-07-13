@@ -1,5 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from typing import Annotated
+from app.schemas.auth import AuthenticatedUser
 from app.models.solicitud_mongo import SolicitudMongoModel
+from app.api.dependencies import get_current_user_clinic
 
 from app.services.cloudinary_service import upload_image
 import cloudinary.uploader
@@ -33,7 +36,10 @@ router = APIRouter()
         }
     }
 )
-async def delete_solicitud(solicitud_id: str):
+async def delete_solicitud(
+    solicitud_id: str,
+    current_user: Annotated[AuthenticatedUser, Depends(get_current_user_clinic)]
+):
     """
     Elimina una solicitud existente.
     Endpoint exclusivo para veterinarias.

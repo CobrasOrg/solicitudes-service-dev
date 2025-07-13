@@ -5,9 +5,10 @@ on:
     branches: [main, develop]
 
 jobs:
-  # Tests de despliegue (siempre se ejecutan)
-  deployment-tests:
+  # Tests críticos de despliegue (solo en develop)
+  critical-tests:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,8 +23,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           
-      - name: Run deployment tests
-        run: python scripts/deployment/test_deployment.py
+      - name: Run critical deployment tests
+        run: |
+          echo "🧪 Ejecutando tests críticos de despliegue..."
+          python scripts/deployment/test_deployment.py
+          echo "✅ Tests críticos completados"
         env:
           MONGODB_URL: ${{ secrets.MONGODB_URL }}
           MONGODB_DATABASE: ${{ secrets.MONGODB_DATABASE }}
@@ -32,10 +36,10 @@ jobs:
           CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
           BASE_URL: ${{ secrets.STAGING_BASE_URL }}
 
-  # Tests completos (solo en push a main, NO en PRs)
-  full-tests:
+  # Tests rápidos de funcionalidad (solo en develop)
+  quick-tests:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -50,15 +54,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           
-      - name: Check if tests directory exists
+      - name: Run quick functionality tests
         run: |
-          if [ -d "tests" ]; then
-            echo "✅ Tests directory found, running tests..."
-            python -m pytest tests/ -v
-          else
-            echo "⚠️ Tests directory not found in main branch (expected for production sync)"
-            echo "✅ Skipping tests as this is a production sync workflow"
-          fi
+          echo "🧪 Ejecutando tests rápidos de funcionalidad..."
+          python scripts/testing/run_tests.py quick
+          echo "✅ Tests rápidos completados"
         env:
           MONGODB_URL: ${{ secrets.MONGODB_URL }}
           MONGODB_DATABASE: ${{ secrets.MONGODB_DATABASE }}
@@ -70,7 +70,7 @@ jobs:
   # Deploy a staging (solo cuando se hace push a develop)
   deploy-to-staging:
     runs-on: ubuntu-latest
-    needs: [deployment-tests]
+    needs: [critical-tests, quick-tests]
     if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
     steps:
       - name: Checkout code
@@ -80,7 +80,10 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
         
       - name: Deploy to Fly.io Staging
-        run: flyctl deploy --remote-only
+        run: |
+          echo "🚀 Desplegando a staging..."
+          flyctl deploy --remote-only
+          echo "✅ Despliegue completado"
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
           MONGODB_URL: ${{ secrets.MONGODB_URL }}
@@ -93,17 +96,21 @@ jobs:
   # Sync to production repository (solo cuando se hace push a main)
   sync-to-production:
     runs-on: ubuntu-latest
-    needs: [deployment-tests]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Notify Production Sync Required
+      - name: Set up Git
         run: |
-          echo "🔄 Push a main detectado"
-          echo "📋 Para sincronizar con producción, ejecuta manualmente:"
-          echo "   git push origin main"
-          echo "   # Luego haz push al repo de producción"
-          echo "✅ Tests de despliegue completados exitosamente"
-          echo "💡 El repo de producción maneja su propio despliegue" 
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+        
+      - name: Sync to Production Repository
+        run: |
+          echo "🔄 Sincronizando con repositorio de producción..."
+          chmod +x ./sync-to-production.sh
+          ./sync-to-production.sh
+          echo "✅ Sincronización completada"
+        env:
+          GITHUB_TOKEN: ${{ secrets.PRODUCTION_SYNC_TOKEN }} 
