@@ -74,6 +74,5 @@ development-files/
 tests/
 pytest.ini
 test_quick.py
-run_tests.py
 sync-to-production.bat
 README-PRODUCTION.md

@@ -57,7 +57,7 @@ jobs:
       - name: Run quick functionality tests
         run: |
           echo "🧪 Ejecutando tests rápidos de funcionalidad..."
-          python run_tests.py quick
+          python scripts/testing/run_tests.py quick
           echo "✅ Tests rápidos completados"
         env:
           MONGODB_URL: ${{ secrets.MONGODB_URL }}
