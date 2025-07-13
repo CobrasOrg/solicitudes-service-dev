@@ -75,11 +75,26 @@ if [ ! -d ".git" ]; then
     else
         git remote add origin https://github.com/CobrasOrg/solicitudes-service.git
     fi
+else
+    # Si ya existe, configurar el remote
+    if [ -n "$GITHUB_TOKEN" ]; then
+        git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/CobrasOrg/solicitudes-service.git
+    else
+        git remote set-url origin https://github.com/CobrasOrg/solicitudes-service.git
+    fi
 fi
 
 # Hacer commit de los cambios
 git add .
 git commit -m "Sync from development: $(date)"
+
+# Intentar pull antes de push para sincronizar cambios remotos
+echo "🔄 Sincronizando con cambios remotos..."
+if git pull origin main --allow-unrelated-histories; then
+    echo "✅ Cambios remotos sincronizados"
+else
+    echo "⚠️ No hay cambios remotos o es la primera vez"
+fi
 
 # Intentar push con diferentes estrategias
 echo "🔄 Intentando push a producción..."
