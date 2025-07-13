@@ -86,15 +86,10 @@ fi
 
 # Hacer commit de los cambios
 git add .
-git commit -m "Sync from development: $(date)"
+git commit -m "Replace production with development version: $(date)"
 
-# Intentar pull antes de push para sincronizar cambios remotos
-echo "🔄 Sincronizando con cambios remotos..."
-if git pull origin main --allow-unrelated-histories; then
-    echo "✅ Cambios remotos sincronizados"
-else
-    echo "⚠️ No hay cambios remotos o es la primera vez"
-fi
+# Estrategia de reemplazo: no hacer pull, solo force push
+echo "🔄 Preparando reemplazo completo del repositorio de producción..."
 
 # Intentar push con diferentes estrategias
 echo "🔄 Intentando push a producción..."
@@ -106,13 +101,13 @@ if [ -z "$GITHUB_TOKEN" ]; then
     exit 1
 fi
 
-# Estrategia 1: Push a main
-if git push origin main; then
-    echo "✅ Sincronización exitosa a branch 'main'!"
-elif git push origin HEAD:main; then
-    echo "✅ Branch 'main' creado y sincronizado!"
+# Estrategia de reemplazo: force push directo
+echo "🔄 Reemplazando contenido del repositorio de producción..."
+if git push origin main --force; then
+    echo "✅ Reemplazo exitoso del repositorio de producción!"
+    echo "📋 Contenido anterior sobrescrito con la versión de desarrollo"
 else
-    echo "❌ Error al sincronizar con producción"
+    echo "❌ Error al reemplazar contenido de producción"
     echo "💡 Verifica que:"
     echo "   - El repositorio CobrasOrg/solicitudes-service existe"
     echo "   - Tienes permisos de escritura en el repositorio"
